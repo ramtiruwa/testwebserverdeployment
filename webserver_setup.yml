@@ -1,0 +1,65 @@
+---
+- name: Install and configure webserver with custom message
+  hosts: all
+  become: yes
+  vars:
+    webserver: apache  # default webserver if not provided
+    web_message: "Welcome to the webserver!"
+
+  tasks:
+    - name: Install Apache webserver
+      yum:
+        name: httpd
+        state: present
+      when: webserver == "apache"
+
+    - name: Install Nginx webserver
+      yum:
+        name: nginx
+        state: present
+      when: webserver == "nginx"
+
+    - name: Ensure Apache service is enabled and started
+      service:
+        name: httpd
+        state: started
+        enabled: yes
+      when: webserver == "apache"
+
+    - name: Ensure Nginx service is enabled and started
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+      when: webserver == "nginx"
+
+    - name: Create custom index.html for Apache
+      copy:
+        dest: /var/www/html/index.html
+        content: |
+          <html>
+            <head><title>Apache Webserver</title></head>
+            <body>
+              <h1>{{ web_message }}</h1>
+            </body>
+          </html>
+        owner: root
+        group: root
+        mode: '0644'
+      when: webserver == "apache"
+
+    - name: Create custom index.html for Nginx
+      copy:
+        dest: /usr/share/nginx/html/index.html
+        content: |
+          <html>
+            <head><title>Nginx Webserver</title></head>
+            <body>
+              <h1>{{ web_message }}</h1>
+            </body>
+          </html>
+        owner: root
+        group: root
+        mode: '0644'
+      when: webserver == "nginx"
+
